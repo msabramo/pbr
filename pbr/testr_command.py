@@ -60,6 +60,7 @@ class Testr(cmd.Command):
          "from each testr worker."),
         ('testr-args=', 't', "Run 'testr' with these args"),
         ('omit=', 'o', 'Files to omit from coverage calculations'),
+        ('source=', 's', 'Source to measure coverage for (module or directory)'),
         ('slowest', None, "Show slowest test times after tests complete."),
         ('no-parallel', None, "Run testr serially"),
     ]
@@ -76,6 +77,7 @@ class Testr(cmd.Command):
         self.testr_args = None
         self.coverage = None
         self.omit = ""
+        self.source = ""
         self.slowest = None
         self.no_parallel = None
 
@@ -87,6 +89,11 @@ class Testr(cmd.Command):
             self.testr_args = self.testr_args.split()
         if self.omit:
             self.omit = "--omit=%s" % self.omit
+        if not self.source:
+            package = self.distribution.get_name()
+            if package.startswith('python-'):
+                package = package[7:]
+            self.source = package
 
     def run(self):
         """Set up testr repo, then run testr"""
@@ -111,10 +118,7 @@ class Testr(cmd.Command):
 
     def _coverage_before(self):
         logger.info("_coverage_before called")
-        package = self.distribution.get_name()
-        if package.startswith('python-'):
-            package = package[7:]
-        options = "--source %s --parallel-mode" % package
+        options = "--source %s --parallel-mode" % self.source
         os.environ['PYTHON'] = ("coverage run %s" % options)
         logger.info("os.environ['PYTHON'] = %r", os.environ['PYTHON'])
 
