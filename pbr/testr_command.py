@@ -40,10 +40,15 @@ package metadata.
 
 from distutils import cmd
 import distutils.errors
+import logging
 import os
 import sys
 
 from testrepository import commands
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger.info("imported")
 
 
 class Testr(cmd.Command):
@@ -62,10 +67,12 @@ class Testr(cmd.Command):
     boolean_options = ['coverage', 'slowest', 'no_parallel']
 
     def _run_testr(self, *args):
+        logger.info("_run_testr called")
         return commands.run_argv([sys.argv[0]] + list(args),
                                  sys.stdin, sys.stdout, sys.stderr)
 
     def initialize_options(self):
+        logger.info("initialize_options called")
         self.testr_args = None
         self.coverage = None
         self.omit = ""
@@ -73,6 +80,7 @@ class Testr(cmd.Command):
         self.no_parallel = None
 
     def finalize_options(self):
+        logger.info("finalize_options called")
         if self.testr_args is None:
             self.testr_args = []
         else:
@@ -82,6 +90,7 @@ class Testr(cmd.Command):
 
     def run(self):
         """Set up testr repo, then run testr"""
+        logger.info("run called")
         if not os.path.isdir(".testrepository"):
             self._run_testr("init")
 
@@ -101,12 +110,15 @@ class Testr(cmd.Command):
             self._coverage_after()
 
     def _coverage_before(self):
+        logger.info("_coverage_before called")
         package = self.distribution.get_name()
         if package.startswith('python-'):
             package = package[7:]
         options = "--source %s --parallel-mode" % package
         os.environ['PYTHON'] = ("coverage run %s" % options)
+        logger.info("os.environ['PYTHON'] = %r", os.environ['PYTHON'])
 
     def _coverage_after(self):
+        logger.info("_coverage_after called")
         os.system("coverage combine")
         os.system("coverage html -d ./cover %s" % self.omit)
